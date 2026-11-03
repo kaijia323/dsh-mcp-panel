@@ -1,0 +1,5 @@
+# MCP panel bundle: one Host row (serves the read-only snapshot) and its
+# Client half (the sidebar entry and the panel page).
+- insert:
+    - id: mcp-panel
+      name: 'dsh-mcp-panel'

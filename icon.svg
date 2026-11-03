@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="MCP">
+  <g fill="none" stroke="#4f7cf0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M16.6 31.4 31.4 16.6"/>
+    <path d="M19.4 12.6 23.6 8.4a8.1 8.1 0 0 1 11.5 11.5l-4.2 4.2"/>
+    <path d="M28.6 35.4 24.4 39.6A8.1 8.1 0 0 1 12.9 28.1l4.2-4.2"/>
+    <circle cx="11.7" cy="36.3" r="3.4"/>
+    <circle cx="36.3" cy="11.7" r="3.4"/>
+  </g>
+</svg>

@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+*.log
+# 本地截图/录屏不进仓库（可能包含会话与路径信息）
+docs/
+*.png
+*.jpg
+*.jpeg
+*.webm

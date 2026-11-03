@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "title": "MCP panel",
+    "description": "Adds an MCP entry under Plugins: configured MCP servers, their connection state, endpoint and tools."
+  },
+  "panel": "MCP",
+  "title": "MCP servers",
+  "subtitle": "See the MCP servers this DSH runs: connection state, endpoint and the tools they expose."
+}

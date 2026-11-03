@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "title": "MCP 面板",
+    "description": "在「插件」下面新增一个 MCP 入口：查看已配置的 MCP 服务器、连接状态、入口地址和工具清单。"
+  },
+  "panel": "MCP",
+  "title": "MCP 服务",
+  "subtitle": "查看本机 DSH 已配置的 MCP 服务器：连接状态、入口地址与它们提供的工具。"
+}
