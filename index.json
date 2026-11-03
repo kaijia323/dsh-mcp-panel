@@ -1,0 +1,41 @@
+{
+  "format": 1,
+  "title": {
+    "en": "kaijia323 · MCP panel",
+    "zh": "kaijia323 · MCP 面板"
+  },
+  "description": {
+    "en": "Plugins for DeepSeek Harness by kaijia323: MCP server panel.",
+    "zh": "kaijia323 的 DeepSeek Harness 插件：MCP 面板。"
+  },
+  "plugins": [
+    {
+      "name": "dsh-mcp-panel",
+      "title": {
+        "en": "MCP panel",
+        "zh": "MCP 面板"
+      },
+      "description": {
+        "en": "Adds an MCP entry under Plugins: see every MCP server with its connection state, endpoint and tools, and add, edit or delete servers in place.",
+        "zh": "在「插件」下面新增 MCP 入口：查看 MCP 服务器的连接状态、入口与工具清单，并可直接新增 / 编辑 / 删除服务器。"
+      },
+      "icon": "icons/dsh-mcp-panel.svg",
+      "author": "kaijia323",
+      "homepage": "https://github.com/kaijia323/dsh-mcp-panel#readme",
+      "repository": {
+        "url": "https://github.com/kaijia323/dsh-mcp-panel"
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "publishTimestamp": 1793724629,
+          "source": {
+            "type": "git",
+            "url": "https://github.com/kaijia323/dsh-mcp-panel",
+            "commit": "9626fc86fc440d87d8262db016541c59ec6ce6bf"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MCP panel">
+  <rect width="64" height="64" rx="14" fill="#0F1115"/>
+  <g fill="none" stroke="#F5F6F8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M25 39 39 25"/>
+    <path d="M27 21 31 17a8 8 0 0 1 11.3 11.3l-4 4"/>
+    <path d="M37 43 33 47A8 8 0 0 1 21.7 35.7l4-4"/>
+  </g>
+  <circle cx="21" cy="43" r="3.4" fill="none" stroke="#4D6BFE" stroke-width="3"/>
+  <circle cx="43" cy="21" r="3.4" fill="none" stroke="#4D6BFE" stroke-width="3"/>
+</svg>
