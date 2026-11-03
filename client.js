@@ -7,10 +7,10 @@
  * - `main` keyed by `mcp` — the panel that row selects. The sidebar addresses
  *   the matching main panel by the same id, so the row needs no click handler.
  *
- * The page reads its data from the Host half's `/api/mcp-panel/servers` route
- * through the same authenticated API channel the rest of the Web UI uses.
- * Styling uses only `--dsw-alias-*` theme tokens; every string goes through the
- * Client locale service.
+ * The page reads its data from, and sends every add / edit / remove to, the Host
+ * half's `/api/mcp-panel/servers` route through the same authenticated API
+ * channel the rest of the Web UI uses. Styling uses only `--dsw-alias-*` theme
+ * tokens; every string goes through the Client locale service.
  */
 window.__ModuleLoader__.load({
   id: 'dsh-mcp-panel',
@@ -27,14 +27,14 @@ window.__ModuleLoader__.load({
       zh: {
         panel: 'MCP',
         title: 'MCP 服务',
-        subtitle: '查看本机 DSH 已配置的 MCP 服务器：连接状态、入口地址与它们提供的工具。',
+        subtitle: '查看并管理本机 MCP 服务器：连接状态、入口地址与它们提供的工具。',
         refresh: '刷新',
         refreshing: '读取中…',
         loading: '正在读取 MCP 服务…',
         failed: '读取失败',
         retry: '重试',
         empty: '还没有配置 MCP 服务器',
-        emptyHint: '在 profile 的 cordis.patch.yml 里插入一条 @deepseek-ai/dsh-mcp-client 即可接入。',
+        emptyHint: '点上面的「添加 MCP 服务器」接一个；也可以直接写 profile 的 cordis.patch.yml。',
         noneConfigured: '未发现 MCP 服务器',
         summary: '{servers} 个服务器 · {tools} 个工具',
         updatedAt: '更新于 {time}',
@@ -43,6 +43,7 @@ window.__ModuleLoader__.load({
         statusFailed: '连接失败',
         statusDisabled: '已停用',
         statusIdle: '未生效',
+        statusNoTools: '未连接（无工具）',
         transportStdio: '本地进程',
         transportHttp: 'HTTP',
         transportUnknown: '未知传输',
@@ -55,19 +56,62 @@ window.__ModuleLoader__.load({
         originPlugin: '接入插件：{name}',
         originTools: '工具来自已加载的插件，未找到对应的 MCP 配置行',
         noAgents: '当前没有活跃会话，工具清单暂时读不到。',
-        row: '配置行 {id}',
+        managed: '由本页管理',
+        add: '添加 MCP 服务器',
+        edit: '编辑',
+        remove: '删除',
+        dialogAddTitle: '添加 MCP 服务器',
+        dialogEditTitle: '编辑 {name}',
+        fieldName: '服务器名',
+        fieldNameHint: '1–32 位字母、数字、- 或 _；工具前缀是 mcp__{name}__',
+        fieldTransport: '传输方式',
+        fieldCommand: '命令',
+        fieldCommandHint: '例如 npx；参数一行一个',
+        fieldArgs: '参数',
+        fieldArgsHint: '每行一个；含空格时不需要加引号',
+        fieldCwd: '工作目录',
+        fieldCwdHint: '可选，留空用 Host 的当前目录',
+        fieldUrl: '地址',
+        fieldUrlHidden: '已设置（含凭据，留空保持不变）',
+        fieldEnv: '环境变量',
+        fieldHeaders: '请求头',
+        pairKey: '名称',
+        pairValue: '值',
+        pairKeep: '已设置，留空保持不变',
+        addPair: '添加一项',
+        removePair: '删除这一项',
+        secretsHint: 'env / header 的值会明文写入 profile 的 cordis.patch.yml；页面只能拿到键名。',
+        save: '保存',
+        saving: '保存中…',
+        cancel: '取消',
+        confirmRemove: '确认删除',
+        removeHint: '删除后这个服务器的工具会立刻从模型的可调用清单里消失。',
+        removeTitle: '删除 {name}',
+        removeFailed: '删除失败',
+        saveFailed: '保存失败',
+        close: '关闭',
+        errorInvalidName: '服务器名必须是 1–32 位字母、数字、- 或 _',
+        errorInvalidTransport: '传输方式只能是 stdio 或 streamable-http',
+        errorInvalidCommand: 'stdio 服务器需要一条命令',
+        errorInvalidUrl: '地址必须是完整的 http(s) 地址',
+        errorDuplicate: '已经有一行同名配置了',
+        errorDuplicateName: '这个服务器名已被占用',
+        errorNotEditable: '这一行由插件提供，不能在这里改；请到「插件」里停用它',
+        errorNotFound: '找不到这一行配置',
+        errorNotApplied: '配置已写入，但 profile 没有热加载；重启 dsh 后生效',
+        errorGeneric: '操作失败',
       },
       en: {
         panel: 'MCP',
         title: 'MCP servers',
-        subtitle: 'See the MCP servers this DSH runs: connection state, endpoint and the tools they expose.',
+        subtitle: 'See and manage the MCP servers this DSH runs: connection state, endpoint and the tools they expose.',
         refresh: 'Refresh',
         refreshing: 'Reading…',
         loading: 'Reading MCP servers…',
         failed: 'Read failed',
         retry: 'Retry',
         empty: 'No MCP server is configured yet',
-        emptyHint: 'Insert an @deepseek-ai/dsh-mcp-client row in the profile cordis.patch.yml to connect one.',
+        emptyHint: 'Use “Add MCP server” above, or add the row in the profile cordis.patch.yml.',
         noneConfigured: 'No MCP server found',
         summary: '{servers} servers · {tools} tools',
         updatedAt: 'Updated at {time}',
@@ -76,6 +120,7 @@ window.__ModuleLoader__.load({
         statusFailed: 'Failed',
         statusDisabled: 'Disabled',
         statusIdle: 'Inactive',
+        statusNoTools: 'Not connected (no tools)',
         transportStdio: 'Local process',
         transportHttp: 'HTTP',
         transportUnknown: 'Unknown transport',
@@ -88,8 +133,63 @@ window.__ModuleLoader__.load({
         originPlugin: 'Provided by {name}',
         originTools: 'Tools come from a loaded plugin; no MCP config row was found',
         noAgents: 'No live Session right now, so the tool list cannot be read.',
-        row: 'Row {id}',
+        managed: 'Managed here',
+        add: 'Add MCP server',
+        edit: 'Edit',
+        remove: 'Delete',
+        dialogAddTitle: 'Add MCP server',
+        dialogEditTitle: 'Edit {name}',
+        fieldName: 'Server name',
+        fieldNameHint: '1–32 letters, digits, “-” or “_”; tools are prefixed mcp__{name}__',
+        fieldTransport: 'Transport',
+        fieldCommand: 'Command',
+        fieldCommandHint: 'For example npx; one argument per line',
+        fieldArgs: 'Arguments',
+        fieldArgsHint: 'One per line; no quoting needed',
+        fieldCwd: 'Working directory',
+        fieldCwdHint: 'Optional; the Host directory when empty',
+        fieldUrl: 'Address',
+        fieldUrlHidden: 'Set (with credentials); leave empty to keep it',
+        fieldEnv: 'Environment',
+        fieldHeaders: 'Headers',
+        pairKey: 'Name',
+        pairValue: 'Value',
+        pairKeep: 'Set; leave empty to keep it',
+        addPair: 'Add one',
+        removePair: 'Remove this one',
+        secretsHint: 'env / header values are stored in the profile cordis.patch.yml in plain text; the page only receives their names.',
+        save: 'Save',
+        saving: 'Saving…',
+        cancel: 'Cancel',
+        confirmRemove: 'Delete',
+        removeHint: 'Deleting removes this server’s tools from the model immediately.',
+        removeTitle: 'Delete {name}',
+        removeFailed: 'Delete failed',
+        saveFailed: 'Save failed',
+        close: 'Close',
+        errorInvalidName: 'The server name must be 1–32 letters, digits, “-” or “_”.',
+        errorInvalidTransport: 'The transport must be stdio or streamable-http.',
+        errorInvalidCommand: 'A stdio server needs a command.',
+        errorInvalidUrl: 'The address must be an absolute http(s) URL.',
+        errorDuplicate: 'A row with that id already exists.',
+        errorDuplicateName: 'That server name is already in use.',
+        errorNotEditable: 'This row is provided by a plugin; disable it under Plugins instead.',
+        errorNotFound: 'That configuration row was not found.',
+        errorNotApplied: 'The configuration was written but the profile did not reload; restart dsh.',
+        errorGeneric: 'The operation failed.',
       },
+    }
+
+    const ERROR_KEYS = {
+      'invalid-name': 'errorInvalidName',
+      'invalid-transport': 'errorInvalidTransport',
+      'invalid-command': 'errorInvalidCommand',
+      'invalid-url': 'errorInvalidUrl',
+      duplicate: 'errorDuplicate',
+      'duplicate-name': 'errorDuplicateName',
+      'not-editable': 'errorNotEditable',
+      'not-found': 'errorNotFound',
+      'not-applied': 'errorNotApplied',
     }
 
     const CSS = `
@@ -129,10 +229,17 @@ window.__ModuleLoader__.load({
   line-height: 20px;
   color: var(--dsw-alias-label-secondary);
 }
-.dsh-mcp-panel__refresh {
+.dsh-mcp-panel__headActions {
   flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dsh-mcp-panel__button {
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   height: 28px;
   padding: 0 10px;
@@ -144,11 +251,23 @@ window.__ModuleLoader__.load({
   font-family: inherit;
   cursor: pointer;
 }
-.dsh-mcp-panel__refresh:hover:not(:disabled) {
+.dsh-mcp-panel__button:hover:not(:disabled) {
   background: var(--dsw-alias-bg-layer-1);
   color: var(--dsw-alias-label-primary);
 }
-.dsh-mcp-panel__refresh:disabled { cursor: default; opacity: 0.6; }
+.dsh-mcp-panel__button:disabled { cursor: default; opacity: 0.6; }
+.dsh-mcp-panel__button--primary {
+  border-color: var(--dsw-alias-brand-primary);
+  background: var(--dsw-alias-brand-primary);
+  color: var(--dsw-alias-bg-base);
+  font-weight: 500;
+}
+.dsh-mcp-panel__button--primary:hover:not(:disabled) {
+  background: var(--dsw-alias-brand-primary);
+  color: var(--dsw-alias-bg-base);
+  opacity: 0.9;
+}
+.dsh-mcp-panel__button--danger { color: var(--dsw-alias-state-error-primary); }
 .dsh-mcp-panel__meta {
   display: flex;
   flex-wrap: wrap;
@@ -158,6 +277,15 @@ window.__ModuleLoader__.load({
   font-size: 12px;
   line-height: 18px;
   color: var(--dsw-alias-label-secondary);
+}
+.dsh-mcp-panel__banner {
+  margin-top: 12px;
+  border: 1px solid var(--dsw-alias-state-error-primary);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-state-error-primary);
 }
 .dsh-mcp-panel__list {
   display: flex;
@@ -226,7 +354,10 @@ window.__ModuleLoader__.load({
   color: var(--dsw-alias-label-secondary);
   opacity: 0.85;
 }
-.dsh-mcp-panel__tools {
+.dsh-mcp-panel__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--dsw-alias-border-l1);
@@ -249,6 +380,20 @@ window.__ModuleLoader__.load({
 .dsh-mcp-panel__toolToggle:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
 .dsh-mcp-panel__chevron { transition: transform 120ms ease; }
 .dsh-mcp-panel__chevron--open { transform: rotate(90deg); }
+.dsh-mcp-panel__cardActions { display: flex; align-items: center; gap: 4px; }
+.dsh-mcp-panel__cardAction {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.dsh-mcp-panel__cardAction:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.dsh-mcp-panel__cardAction--danger:hover { color: var(--dsw-alias-state-error-primary); }
 .dsh-mcp-panel__toolList {
   display: flex;
   flex-direction: column;
@@ -311,6 +456,148 @@ window.__ModuleLoader__.load({
   0%, 100% { opacity: 0.45; }
   50% { opacity: 0.9; }
 }
+.dsh-mcp-panel__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.dsh-mcp-panel__dialog {
+  box-sizing: border-box;
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 14px;
+  background: var(--dsw-alias-bg-overlay);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+}
+.dsh-mcp-panel__dialogHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px 12px;
+}
+.dsh-mcp-panel__dialogTitle {
+  flex: 1;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+}
+.dsh-mcp-panel__close {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.dsh-mcp-panel__close:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
+.dsh-mcp-panel__dialogBody {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 18px 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.dsh-mcp-panel__dialogFoot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px 16px;
+}
+.dsh-mcp-panel__field { display: flex; flex-direction: column; gap: 6px; }
+.dsh-mcp-panel__label {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--dsw-alias-label-secondary);
+}
+.dsh-mcp-panel__hint {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--dsw-alias-label-secondary);
+  opacity: 0.85;
+}
+.dsh-mcp-panel__input,
+.dsh-mcp-panel__textarea,
+.dsh-mcp-panel__select {
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--dsw-alias-border-l1);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-base);
+  color: var(--dsw-alias-label-primary);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 20px;
+  padding: 6px 9px;
+}
+.dsh-mcp-panel__input:focus,
+.dsh-mcp-panel__textarea:focus,
+.dsh-mcp-panel__select:focus {
+  outline: none;
+  border-color: var(--dsw-alias-brand-primary);
+}
+.dsh-mcp-panel__input:disabled {
+  color: var(--dsw-alias-label-secondary);
+  background: var(--dsw-alias-bg-layer-1);
+}
+.dsh-mcp-panel__textarea {
+  resize: vertical;
+  min-height: 64px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 18px;
+}
+.dsh-mcp-panel__pairs { display: flex; flex-direction: column; gap: 6px; }
+.dsh-mcp-panel__pair { display: flex; align-items: center; gap: 6px; }
+.dsh-mcp-panel__pair .dsh-mcp-panel__input { flex: 1; min-width: 0; }
+.dsh-mcp-panel__pairRemove {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.dsh-mcp-panel__pairRemove:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-state-error-primary); }
+.dsh-mcp-panel__addPair {
+  align-self: flex-start;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px dashed var(--dsw-alias-border-l2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.dsh-mcp-panel__addPair:hover { color: var(--dsw-alias-label-primary); border-color: var(--dsw-alias-border-l1); }
+.dsh-mcp-panel__dialogError {
+  border: 1px solid var(--dsw-alias-state-error-primary);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-state-error-primary);
+}
 @media (prefers-reduced-motion: reduce) {
   .dsh-mcp-panel__skeleton { animation: none; opacity: 0.6; }
   .dsh-mcp-panel__chevron { transition: none; }
@@ -350,20 +637,8 @@ window.__ModuleLoader__.load({
           strokeLinecap: 'round',
           strokeLinejoin: 'round',
         }),
-        h('circle', {
-          cx: 5.1,
-          cy: 14.9,
-          r: 1.4,
-          stroke: 'currentColor',
-          strokeWidth: 1.5,
-        }),
-        h('circle', {
-          cx: 14.9,
-          cy: 5.1,
-          r: 1.4,
-          stroke: 'currentColor',
-          strokeWidth: 1.5,
-        }),
+        h('circle', { cx: 5.1, cy: 14.9, r: 1.4, stroke: 'currentColor', strokeWidth: 1.5 }),
+        h('circle', { cx: 14.9, cy: 5.1, r: 1.4, stroke: 'currentColor', strokeWidth: 1.5 }),
       )
     }
 
@@ -374,10 +649,6 @@ window.__ModuleLoader__.load({
       )
     }
 
-    function statusClass(status) {
-      return `dsh-mcp-panel__status--${status}`
-    }
-
     function statusLabel(t, status) {
       switch (status) {
         case 'active':
@@ -386,6 +657,8 @@ window.__ModuleLoader__.load({
           return t('statusStarting')
         case 'failed':
           return t('statusFailed')
+        case 'no-tools':
+          return t('statusNoTools')
         case 'disabled':
           return t('statusDisabled')
         default:
@@ -397,6 +670,14 @@ window.__ModuleLoader__.load({
       if (transport === 'stdio') return t('transportStdio')
       if (transport === 'streamable-http' || transport === 'http') return t('transportHttp')
       return t('transportUnknown')
+    }
+
+    /** Turn a Host error into the sentence the dialog shows. */
+    function describeError(t, error) {
+      if (error === null || error === undefined) return t('errorGeneric')
+      const key = ERROR_KEYS[error.code]
+      const fallback = typeof error.message === 'string' && error.message !== '' ? error.message : t('errorGeneric')
+      return key === undefined ? fallback : t(key)
     }
 
     function Chevron(props) {
@@ -420,9 +701,67 @@ window.__ModuleLoader__.load({
       )
     }
 
-    /** One server card: identity, state, endpoint and its tools. */
+    /** One editable key/value list (env or headers). */
+    function PairRows(props) {
+      const { t, label, rows, onChange, onRemove, onAdd } = props
+      return h(
+        'div',
+        { className: 'dsh-mcp-panel__field' },
+        h('span', { className: 'dsh-mcp-panel__label' }, label),
+        h(
+          'div',
+          { className: 'dsh-mcp-panel__pairs' },
+          rows.map((row, index) =>
+            h(
+              'div',
+              { key: index, className: 'dsh-mcp-panel__pair' },
+              h('input', {
+                className: 'dsh-mcp-panel__input',
+                value: row.key,
+                placeholder: t('pairKey'),
+                spellCheck: false,
+                'aria-label': `${label} ${index + 1} ${t('pairKey')}`,
+                onChange: (event) => onChange(index, 'key', event.target.value),
+              }),
+              h('input', {
+                className: 'dsh-mcp-panel__input',
+                value: row.value,
+                placeholder: row.existing === true ? t('pairKeep') : t('pairValue'),
+                spellCheck: false,
+                type: row.existing === true ? 'password' : 'text',
+                autoComplete: 'off',
+                'aria-label': `${label} ${index + 1} ${t('pairValue')}`,
+                onChange: (event) => onChange(index, 'value', event.target.value),
+              }),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dsh-mcp-panel__pairRemove',
+                  'aria-label': t('removePair'),
+                  title: t('removePair'),
+                  onClick: () => onRemove(index),
+                },
+                '×',
+              ),
+            ),
+          ),
+        ),
+        h(
+          'button',
+          {
+            type: 'button',
+            className: 'dsh-mcp-panel__addPair',
+            onClick: onAdd,
+          },
+          t('addPair'),
+        ),
+      )
+    }
+
+    /** One server card: identity, state, endpoint, tools and row actions. */
     function ServerCard(props) {
-      const { t, server } = props
+      const { t, server, onEdit, onRemove } = props
       const [open, setOpen] = React.useState(false)
       const envKeys = Array.isArray(server.envKeys) ? server.envKeys : []
       const headerKeys = Array.isArray(server.headerKeys) ? server.headerKeys : []
@@ -430,12 +769,15 @@ window.__ModuleLoader__.load({
       if (envKeys.length > 0 || headerKeys.length > 0) {
         secrets.push(format(t('secrets'), { env: envKeys.length, headers: headerKeys.length }))
       }
+      const displayStatus =
+        server.status === 'active' && server.toolCount === 0 ? 'no-tools' : server.status
       const originNote =
         server.origin === 'plugin' && server.provider !== ''
           ? format(t('originPlugin'), { name: server.provider })
           : server.origin === 'tools'
             ? t('originTools')
             : ''
+
       return h(
         'div',
         { className: 'dsh-mcp-panel__card' },
@@ -445,9 +787,9 @@ window.__ModuleLoader__.load({
           h('span', { className: 'dsh-mcp-panel__name', title: server.serverName }, server.serverName),
           h(
             'span',
-            { className: 'dsh-mcp-panel__pill dsh-mcp-panel__status ' + statusClass(server.status) },
+            { className: 'dsh-mcp-panel__pill dsh-mcp-panel__status ' + `dsh-mcp-panel__status--${displayStatus}` },
             h('span', { className: 'dsh-mcp-panel__dot' }),
-            statusLabel(t, server.status),
+            statusLabel(t, displayStatus),
           ),
           h('span', { className: 'dsh-mcp-panel__spacer' }),
           server.transport !== ''
@@ -459,21 +801,13 @@ window.__ModuleLoader__.load({
             server.toolCount > 0 ? format(t('tools'), { count: server.toolCount }) : t('noTools'),
           ),
         ),
-        server.target !== ''
-          ? h('div', { className: 'dsh-mcp-panel__target' }, server.target)
-          : null,
-        server.targetWithheld
-          ? h('div', { className: 'dsh-mcp-panel__note' }, t('withheld'))
-          : null,
-        secrets.length > 0
-          ? h('div', { className: 'dsh-mcp-panel__note' }, secrets.join(' · '))
-          : null,
-        originNote !== ''
-          ? h('div', { className: 'dsh-mcp-panel__note' }, originNote)
-          : null,
+        server.target !== '' ? h('div', { className: 'dsh-mcp-panel__target' }, server.target) : null,
+        server.targetWithheld ? h('div', { className: 'dsh-mcp-panel__note' }, t('withheld')) : null,
+        secrets.length > 0 ? h('div', { className: 'dsh-mcp-panel__note' }, secrets.join(' · ')) : null,
+        originNote !== '' ? h('div', { className: 'dsh-mcp-panel__note' }, originNote) : null,
         h(
           'div',
-          { className: 'dsh-mcp-panel__tools' },
+          { className: 'dsh-mcp-panel__footer' },
           h(
             'button',
             {
@@ -485,6 +819,35 @@ window.__ModuleLoader__.load({
             h(Chevron, { open }),
             open ? t('hideTools') : t('showTools'),
           ),
+          h('span', { className: 'dsh-mcp-panel__spacer' }),
+          server.editable
+            ? h(
+                'span',
+                { className: 'dsh-mcp-panel__cardActions' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dsh-mcp-panel__cardAction',
+                    onClick: () => onEdit(server),
+                  },
+                  t('edit'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dsh-mcp-panel__cardAction dsh-mcp-panel__cardAction--danger',
+                    onClick: () => onRemove(server),
+                  },
+                  t('remove'),
+                ),
+              )
+            : null,
+        ),
+        h(
+          'div',
+          { className: 'dsh-mcp-panel__tools' },
           open
             ? server.tools.length > 0
               ? h(
@@ -496,11 +859,7 @@ window.__ModuleLoader__.load({
                       { key: tool.name },
                       h('div', { className: 'dsh-mcp-panel__toolName' }, tool.name),
                       tool.description !== ''
-                        ? h(
-                            'div',
-                            { className: 'dsh-mcp-panel__toolDescription' },
-                            tool.description,
-                          )
+                        ? h('div', { className: 'dsh-mcp-panel__toolDescription' }, tool.description)
                         : null,
                     ),
                   ),
@@ -511,17 +870,383 @@ window.__ModuleLoader__.load({
       )
     }
 
-    /** The panel page: header, freshness line and the server list. */
+    /** The add / edit dialog, and the delete confirmation inside it. */
+    function ServerDialog(props) {
+      const { t, mode, server, onClose, onSaved } = props
+      const deleteOnly = props.confirmInitial === true
+      const initial = buildInitialForm(server)
+      const [form, setForm] = React.useState(initial)
+      const [pending, setPending] = React.useState(false)
+      const [error, setError] = React.useState('')
+      const [confirming, setConfirming] = React.useState(deleteOnly)
+
+      React.useEffect(() => {
+        const onKeyDown = (event) => {
+          if (event.key === 'Escape') {
+            event.stopPropagation()
+            onClose()
+          }
+        }
+        window.addEventListener('keydown', onKeyDown, true)
+        return () => window.removeEventListener('keydown', onKeyDown, true)
+      }, [onClose])
+
+      const update = (patch) => setForm((current) => ({ ...current, ...patch }))
+      const updatePair = (field, index, key, value) =>
+        setForm((current) => {
+          const rows = current[field].map((row, rowIndex) =>
+            rowIndex === index ? { ...row, [key]: value } : row,
+          )
+          return { ...current, [field]: rows }
+        })
+      const addPair = (field) =>
+        setForm((current) => ({ ...current, [field]: [...current[field], { key: '', value: '' }] }))
+      const removePair = (field, index) =>
+        setForm((current) => ({
+          ...current,
+          [field]: current[field].filter((_, rowIndex) => rowIndex !== index),
+        }))
+
+      const submit = async (event) => {
+        if (event !== undefined) event.preventDefault()
+        if (pending) return
+        setPending(true)
+        setError('')
+        const payload =
+          mode === 'add'
+            ? {
+                action: 'add',
+                serverName: form.serverName.trim(),
+                transport: form.transport,
+                command: form.command,
+                args: splitLines(form.argsText),
+                cwd: form.cwd,
+                url: form.url,
+                env: form.envRows,
+                headers: form.headerRows,
+              }
+            : {
+                action: 'update',
+                id: server.rowId,
+                transport: form.transport,
+                command: form.command,
+                args: splitLines(form.argsText),
+                cwd: form.cwd,
+                url: form.url,
+                env: form.envRows,
+                headers: form.headerRows,
+              }
+        try {
+          const response = await fetch(new URL(ENDPOINT, document.baseURI), {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', accept: 'application/json' },
+            body: JSON.stringify(payload),
+          })
+          const body = await response.json()
+          if (!response.ok || body?.ok !== true) {
+            setError(describeError(t, body?.error))
+            return
+          }
+          onSaved()
+        } catch (cause) {
+          setError(`${t('saveFailed')}: ${cause instanceof Error ? cause.message : String(cause)}`)
+        } finally {
+          setPending(false)
+        }
+      }
+
+      const remove = async () => {
+        if (pending) return
+        setPending(true)
+        setError('')
+        try {
+          const response = await fetch(new URL(ENDPOINT, document.baseURI), {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', accept: 'application/json' },
+            body: JSON.stringify({ action: 'remove', id: server.rowId }),
+          })
+          const body = await response.json()
+          if (!response.ok || body?.ok !== true) {
+            setError(describeError(t, body?.error))
+            return
+          }
+          onSaved()
+        } catch (cause) {
+          setError(`${t('removeFailed')}: ${cause instanceof Error ? cause.message : String(cause)}`)
+        } finally {
+          setPending(false)
+        }
+      }
+
+      const http = form.transport === 'streamable-http'
+      const title =
+        mode === 'add'
+          ? t('dialogAddTitle')
+          : deleteOnly
+            ? format(t('removeTitle'), { name: server.serverName })
+            : format(t('dialogEditTitle'), { name: server.serverName })
+
+      return h(
+        'div',
+        {
+          className: 'dsh-mcp-panel__overlay',
+          onMouseDown: (event) => {
+            if (event.target === event.currentTarget) onClose()
+          },
+        },
+        h(
+          'div',
+          {
+            className: 'dsh-mcp-panel__dialog',
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-label': title,
+          },
+          h(
+            'div',
+            { className: 'dsh-mcp-panel__dialogHead' },
+            h('span', { className: 'dsh-mcp-panel__dialogTitle' }, title),
+            h(
+              'button',
+              {
+                type: 'button',
+                className: 'dsh-mcp-panel__close',
+                'aria-label': t('close'),
+                title: t('close'),
+                onClick: onClose,
+              },
+              '×',
+            ),
+          ),
+          h(
+            'div',
+            { className: 'dsh-mcp-panel__dialogBody' },
+            error !== '' ? h('div', { className: 'dsh-mcp-panel__dialogError', role: 'alert' }, error) : null,
+            confirming
+              ? h('div', { className: 'dsh-mcp-panel__hint' }, t('removeHint'))
+              : h(
+                  React.Fragment,
+                  null,
+                  h(
+                    'label',
+                    { className: 'dsh-mcp-panel__field' },
+                    h('span', { className: 'dsh-mcp-panel__label' }, t('fieldName')),
+                    h('input', {
+                      className: 'dsh-mcp-panel__input',
+                      value: form.serverName,
+                      disabled: mode !== 'add',
+                      autoFocus: mode === 'add',
+                      spellCheck: false,
+                      autoComplete: 'off',
+                      onChange: (event) => update({ serverName: event.target.value }),
+                    }),
+                    h(
+                      'span',
+                      { className: 'dsh-mcp-panel__hint' },
+                      format(t('fieldNameHint'), { name: form.serverName.trim() === '' ? 'name' : form.serverName.trim() }),
+                    ),
+                  ),
+                  h(
+                    'label',
+                    { className: 'dsh-mcp-panel__field' },
+                    h('span', { className: 'dsh-mcp-panel__label' }, t('fieldTransport')),
+                    h(
+                      'select',
+                      {
+                        className: 'dsh-mcp-panel__select',
+                        value: form.transport,
+                        onChange: (event) => update({ transport: event.target.value }),
+                      },
+                      h('option', { value: 'stdio' }, `stdio — ${t('transportStdio')}`),
+                      h('option', { value: 'streamable-http' }, `streamable-http — ${t('transportHttp')}`),
+                    ),
+                  ),
+                  http
+                    ? h(
+                        'label',
+                        { className: 'dsh-mcp-panel__field' },
+                        h('span', { className: 'dsh-mcp-panel__label' }, t('fieldUrl')),
+                        h('input', {
+                          className: 'dsh-mcp-panel__input',
+                          value: form.url,
+                          placeholder: form.urlHidden ? t('fieldUrlHidden') : 'https://host/mcp',
+                          spellCheck: false,
+                          autoComplete: 'off',
+                          autoFocus: mode === 'edit',
+                          onChange: (event) => update({ url: event.target.value }),
+                        }),
+                      )
+                    : h(
+                        React.Fragment,
+                        null,
+                        h(
+                          'label',
+                          { className: 'dsh-mcp-panel__field' },
+                          h('span', { className: 'dsh-mcp-panel__label' }, t('fieldCommand')),
+                          h('input', {
+                            className: 'dsh-mcp-panel__input',
+                            value: form.command,
+                            placeholder: 'npx',
+                            spellCheck: false,
+                            autoComplete: 'off',
+                            autoFocus: mode === 'edit',
+                            onChange: (event) => update({ command: event.target.value }),
+                          }),
+                          h('span', { className: 'dsh-mcp-panel__hint' }, t('fieldCommandHint')),
+                        ),
+                        h(
+                          'label',
+                          { className: 'dsh-mcp-panel__field' },
+                          h('span', { className: 'dsh-mcp-panel__label' }, t('fieldArgs')),
+                          h('textarea', {
+                            className: 'dsh-mcp-panel__textarea',
+                            value: form.argsText,
+                            spellCheck: false,
+                            onChange: (event) => update({ argsText: event.target.value }),
+                          }),
+                          h('span', { className: 'dsh-mcp-panel__hint' }, t('fieldArgsHint')),
+                        ),
+                        h(
+                          'label',
+                          { className: 'dsh-mcp-panel__field' },
+                          h('span', { className: 'dsh-mcp-panel__label' }, t('fieldCwd')),
+                          h('input', {
+                            className: 'dsh-mcp-panel__input',
+                            value: form.cwd,
+                            spellCheck: false,
+                            autoComplete: 'off',
+                            onChange: (event) => update({ cwd: event.target.value }),
+                          }),
+                          h('span', { className: 'dsh-mcp-panel__hint' }, t('fieldCwdHint')),
+                        ),
+                      ),
+                  http
+                    ? h(PairRows, {
+                        t,
+                        label: t('fieldHeaders'),
+                        rows: form.headerRows,
+                        onChange: (index, key, value) => updatePair('headerRows', index, key, value),
+                        onRemove: (index) => removePair('headerRows', index),
+                        onAdd: () => addPair('headerRows'),
+                      })
+                    : h(PairRows, {
+                        t,
+                        label: t('fieldEnv'),
+                        rows: form.envRows,
+                        onChange: (index, key, value) => updatePair('envRows', index, key, value),
+                        onRemove: (index) => removePair('envRows', index),
+                        onAdd: () => addPair('envRows'),
+                      }),
+                  h('span', { className: 'dsh-mcp-panel__hint' }, t('secretsHint')),
+                ),
+          ),
+          h(
+            'div',
+            { className: 'dsh-mcp-panel__dialogFoot' },
+            mode === 'edit' && !deleteOnly && !confirming
+              ? h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dsh-mcp-panel__button dsh-mcp-panel__button--danger',
+                    disabled: pending,
+                    onClick: () => setConfirming(true),
+                  },
+                  t('remove'),
+                )
+              : null,
+            h('span', { className: 'dsh-mcp-panel__spacer' }),
+            confirming
+              ? h(
+                  React.Fragment,
+                  null,
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'dsh-mcp-panel__button',
+                      disabled: pending,
+                      onClick: () => (deleteOnly ? onClose() : setConfirming(false)),
+                    },
+                    t('cancel'),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'dsh-mcp-panel__button dsh-mcp-panel__button--danger',
+                      disabled: pending,
+                      onClick: remove,
+                    },
+                    pending ? t('saving') : t('confirmRemove'),
+                  ),
+                )
+              : h(
+                  React.Fragment,
+                  null,
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'dsh-mcp-panel__button',
+                      disabled: pending,
+                      onClick: onClose,
+                    },
+                    t('cancel'),
+                  ),
+                  h(
+                    'button',
+                    {
+                      type: 'button',
+                      className: 'dsh-mcp-panel__button dsh-mcp-panel__button--primary',
+                      disabled: pending,
+                      onClick: submit,
+                    },
+                    pending ? t('saving') : t('save'),
+                  ),
+                ),
+          ),
+        ),
+      )
+    }
+
+    function buildInitialForm(server) {
+      const config = server?.config ?? null
+      return {
+        serverName: server?.serverName ?? '',
+        transport: config?.transport === 'streamable-http' ? 'streamable-http' : 'stdio',
+        command: config?.command ?? '',
+        argsText: Array.isArray(config?.args) ? config.args.join('\n') : '',
+        cwd: config?.cwd ?? '',
+        url: config?.url ?? '',
+        urlHidden: config?.targetWithheld === true,
+        envRows: (config?.envKeys ?? []).map((key) => ({ key, value: '', existing: true })),
+        headerRows: (config?.headerKeys ?? []).map((key) => ({ key, value: '', existing: true })),
+      }
+    }
+
+    function splitLines(text) {
+      return String(text ?? '')
+        .split('\n')
+        .map((line) => line.trim())
+        .filter((line) => line !== '')
+    }
+
+    /** The panel page: header, freshness line, server list and the dialog. */
     function McpPanel(props) {
       const t = typeof props.t === 'function' ? props.t : (key) => key
       const [view, setView] = React.useState({ status: 'loading', data: null, error: '' })
       const [pending, setPending] = React.useState(false)
+      const [dialog, setDialog] = React.useState(null)
+      const [actionError, setActionError] = React.useState('')
       const alive = React.useRef(true)
+      const settle = React.useRef(null)
 
       React.useEffect(() => {
         alive.current = true
         return () => {
           alive.current = false
+          if (settle.current !== null) clearTimeout(settle.current)
         }
       }, [])
 
@@ -552,17 +1277,27 @@ window.__ModuleLoader__.load({
         load()
       }, [load])
 
+      const finish = React.useCallback(() => {
+        setDialog(null)
+        setActionError('')
+        load()
+        // A newly added server connects a moment later: read once more so the
+        // card leaves "connecting" without the user pressing refresh.
+        if (settle.current !== null) clearTimeout(settle.current)
+        settle.current = setTimeout(() => {
+          settle.current = null
+          load()
+        }, 2500)
+      }, [load])
+
       const data = view.data
       const servers = Array.isArray(data?.servers) ? data.servers : []
-      const updatedAt =
-        typeof data?.fetchedAt === 'number'
-          ? new Date(data.fetchedAt).toLocaleTimeString()
-          : ''
+      const updatedAt = typeof data?.fetchedAt === 'number' ? new Date(data.fetchedAt).toLocaleTimeString() : ''
 
       const body = []
       if (view.status === 'loading') {
         body.push(h('div', { key: 'skeleton', className: 'dsh-mcp-panel__skeleton' }))
-      } else if (view.status === 'error') {
+      } else if (view.status === 'error' && data === null) {
         body.push(
           h(
             'div',
@@ -574,7 +1309,7 @@ window.__ModuleLoader__.load({
             { key: 'retry', style: { marginTop: 12 } },
             h(
               'button',
-              { type: 'button', className: 'dsh-mcp-panel__refresh', onClick: load },
+              { type: 'button', className: 'dsh-mcp-panel__button', onClick: load },
               t('retry'),
             ),
           ),
@@ -597,7 +1332,13 @@ window.__ModuleLoader__.load({
             'div',
             { key: 'list', className: 'dsh-mcp-panel__list' },
             servers.map((server) =>
-              h(ServerCard, { key: server.id, t, server }),
+              h(ServerCard, {
+                key: server.id,
+                t,
+                server,
+                onEdit: (target) => setDialog({ mode: 'edit', server: target }),
+                onRemove: (target) => setDialog({ mode: 'edit', server: target, confirmInitial: true }),
+              }),
             ),
           ),
         )
@@ -619,16 +1360,42 @@ window.__ModuleLoader__.load({
               h('p', { className: 'dsh-mcp-panel__subtitle' }, t('subtitle')),
             ),
             h(
-              'button',
-              {
-                type: 'button',
-                className: 'dsh-mcp-panel__refresh',
-                onClick: load,
-                disabled: pending,
-              },
-              pending ? t('refreshing') : t('refresh'),
+              'div',
+              { className: 'dsh-mcp-panel__headActions' },
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dsh-mcp-panel__button',
+                  onClick: load,
+                  disabled: pending,
+                },
+                pending ? t('refreshing') : t('refresh'),
+              ),
+              h(
+                'button',
+                {
+                  type: 'button',
+                  className: 'dsh-mcp-panel__button dsh-mcp-panel__button--primary',
+                  onClick: () => {
+                    setActionError('')
+                    setDialog({ mode: 'add', server: null })
+                  },
+                },
+                t('add'),
+              ),
             ),
           ),
+          view.status === 'error' && data !== null
+            ? h(
+                'div',
+                { className: 'dsh-mcp-panel__banner', role: 'alert' },
+                `${t('failed')}: ${view.error}`,
+              )
+            : null,
+          actionError !== ''
+            ? h('div', { className: 'dsh-mcp-panel__banner', role: 'alert' }, actionError)
+            : null,
           h(
             'div',
             { className: 'dsh-mcp-panel__meta' },
@@ -646,6 +1413,16 @@ window.__ModuleLoader__.load({
           ),
           body,
         ),
+        dialog !== null
+          ? h(ServerDialog, {
+              t,
+              mode: dialog.mode,
+              server: dialog.server,
+              confirmInitial: dialog.confirmInitial === true,
+              onClose: () => setDialog(null),
+              onSaved: finish,
+            })
+          : null,
       )
     }
 

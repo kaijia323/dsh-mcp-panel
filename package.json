@@ -32,5 +32,11 @@
         "@deepseek-ai/dsh-client-locale"
       ]
     }
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
+  "scripts": {
+    "test": "node tests/host.test.mjs"
   }
 }
