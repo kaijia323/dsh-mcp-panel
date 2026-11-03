@@ -38,5 +38,16 @@
   },
   "scripts": {
     "test": "node tests/host.test.mjs"
-  }
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/kaijia323/dsh-mcp-panel#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kaijia323/dsh-mcp-panel"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "mcp",
+    "deepseek-harness"
+  ]
 }

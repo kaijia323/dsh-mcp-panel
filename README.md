@@ -75,6 +75,48 @@ pnpm test           # 可选：跑 Host 半的自测
 plugin_manager(action: "remove_bundle", target: "dsh-mcp-panel")
 ```
 
+## 发布
+
+版本号、tag、GitHub Release、插件市场索引四处必须一起动；少一处，用户看到的还是旧版：
+
+1. `package.json` 的 `version` 加一个补丁号，改动写进提交信息，推 `main`；
+2. `git tag vX.Y.Z` 并推 tag；
+3. 建 GitHub Release（`gh` 已登录 kaijia323）：
+   `gh release create vX.Y.Z -R kaijia323/dsh-mcp-panel --title "vX.Y.Z — <一句话>" --notes-file <notes> --latest`。
+   正文照下面的格式：改了什么 / 验证 / 怎么升级，末尾附
+   `https://github.com/kaijia323/dsh-mcp-panel/compare/v<上一个>...vX.Y.Z`；
+4. 同步市场索引（`gh-pages` 分支的 `index.json`）：在 `versions` 最前面插入
+   `{"version": "X.Y.Z", "publishTimestamp": <unix 秒>, "source": {"type": "git", "url": "https://github.com/kaijia323/dsh-mcp-panel", "commit": "<tag 指向的 commit>"}}`，
+   提交 `market: publish vX.Y.Z` 推到 `gh-pages`；
+5. 核对三处线上状态：`gh release list` 里 `Latest` 是刚发的 tag、
+   `https://raw.githubusercontent.com/kaijia323/dsh-mcp-panel/gh-pages/index.json`（立即生效）、
+   `https://kaijia323.github.io/dsh-mcp-panel/index.json`（Pages 要等构建），最新版本都必须是刚发的那个。
+
+插件市场索引地址：`https://kaijia323.github.io/dsh-mcp-panel/index.json`，
+把它加进 profile 的 `plugin-market` 配置 `indexes` 后，「插件 → 发现」里就能看到这个插件。
+
+发布说明格式：
+
+```markdown
+## dsh-mcp-panel X.Y.Z — <一句话>
+
+<为什么改 / 背景>
+
+### 新增 | 修复
+
+- ...
+
+### 验证
+
+- ...
+
+### 升级
+
+插件页 / 市场刷新后更新到 X.Y.Z，或把依赖指到 `github:kaijia323/dsh-mcp-panel#<commit>`。
+
+**对比**：https://github.com/kaijia323/dsh-mcp-panel/compare/v<上一个>...vX.Y.Z
+```
+
 ## 已知边界
 
 - 工具清单按活跃会话汇总：没有任何会话时只剩配置行，工具列表为空。
