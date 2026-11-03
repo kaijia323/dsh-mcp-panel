@@ -1,9 +1,12 @@
 node_modules/
 .DS_Store
 *.log
-# 本地截图/录屏不进仓库（可能包含会话与路径信息）
+# 原始截图/录屏不进仓库（会话内容/路径等隐私信息）
 docs/
 *.png
 *.jpg
 *.jpeg
 *.webm
+# 只保留脱敏后的预览素材（只截面板区域，不含侧栏会话列表）
+!screenshots/
+!screenshots/*.png

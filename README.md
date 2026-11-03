@@ -23,6 +23,16 @@ Host 半注册 `GET /api/mcp-panel/servers`（走 `connection.fetch`，和官方
 
 env / headers 只显示条数，从不下发值；URL 去掉账号密码与查询参数并在卡片上注明；`liveAgents` 为 0 时页面提示「当前没有活跃会话，工具清单暂时读不到」。
 
+## 截图
+
+浅色（折叠状态）：
+
+![MCP 面板（浅色）](screenshots/panel-light.png)
+
+深色（展开 24 个工具）：
+
+![MCP 面板（深色，展开工具）](screenshots/panel-dark-expanded.png)
+
 ## 目录
 
 ```
