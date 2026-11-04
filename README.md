@@ -1,5 +1,10 @@
 # dsh-mcp-panel
 
+![license](https://img.shields.io/badge/license-MIT-2f8f5b?style=flat-square)
+![platform](https://img.shields.io/badge/platform-DSH%20Web-4D6BFE?style=flat-square)
+![plugin](https://img.shields.io/badge/type-DSH%20plugin-0F1115?style=flat-square)
+![mcp](https://img.shields.io/badge/scope-MCP%20servers-6b7280?style=flat-square)
+
 在 DeepSeek Harness Web 的左侧栏「插件」下面加一个 **MCP** 入口，点进去是本机 MCP 服务器的可视化页面：
 服务器名、连接状态、接入方式、入口地址（凭据已隐藏）、每个服务器提供的工具清单，**并且可以在页面上直接新增 / 编辑 / 删除服务器**。
 
@@ -63,17 +68,54 @@ screenshots/      浅色、深色与三个对话框
 
 ## 安装
 
-```bash
-pnpm install        # 只用链接目录安装时，依赖要自己装
-plugin_manager(action: "install_bundle", target: "/home/kaijia/codes/dsh-mcp-panel")
+前提：DSH Web **0.2.2 系列**（`package.json` 的 `engines.dsh` 声明 `>=0.2.2-alpha.2`，当前按
+0.2.2-alpha.3 构建并验证）。版本低于要求时插件页会提示不兼容，而不是静默加载后出问题。
+
+**方式一：插件市场（推荐）**
+
+1. 在插件页的「实验性插件」里启用「自定义插件索引」（不在列表里就点「更多」）；启用后插件页
+   会多出「已安装 / 发现」两个标签页。
+2. 切到「发现」，点「添加索引源」（已经加过索引源时，走「插件索引」菜单 →「管理索引源…」），填：
+
+   ```
+   https://kaijia323.github.io/dsh-mcp-panel/index.json
+   ```
+
+3. 在索引里找到「MCP 面板」，点「安装」并确认。
+
+**方式二：GitHub 地址**
+
+1. 打开 DSH Web → 左侧栏「插件」→ 右上「添加插件」；
+2. 输入 `github:kaijia323/dsh-mcp-panel`；
+3. 点「安装」，装完在插件列表里启用 `dsh-mcp-panel`。
+
+**方式三：本地目录**（开发调试，或插件市场连不上时）
+
+```sh
+git clone https://github.com/kaijia323/dsh-mcp-panel.git ~/dsh-mcp-panel
+cd ~/dsh-mcp-panel
+pnpm install        # 依赖 yaml；以链接目录安装时不会自动装
 pnpm test           # 可选：跑 Host 半的自测
 ```
 
-装好或升级后**刷新一次页面**（新 Client 模块要重新加载才会出现在侧栏）。卸载：
+然后在「添加插件」里填这个目录的路径（例如 `/home/you/dsh-mcp-panel`），或让 Agent 调
+`plugin_manager(action: "install_bundle", target: "/home/you/dsh-mcp-panel")`。
+
+**装完怎么确认**
+
+刷新一次页面（新 Client 模块要重新加载才会出现在侧栏）：左侧栏「插件」下面多出「MCP」入口，
+点进去能看到本机已配置的 MCP 服务器、连接状态、入口地址与工具清单。当前没有活跃会话时，
+工具清单会提示「当前没有活跃会话，工具清单暂时读不到」，属于预期行为（见「已知边界」）。
+
+**卸载**
+
+在插件列表里卸载 `dsh-mcp-panel`，或：
 
 ```
 plugin_manager(action: "remove_bundle", target: "dsh-mcp-panel")
 ```
+
+卸载只移除插件本身，已经写在 profile 里的 MCP 服务器配置行不受影响。
 
 ## 发布
 
